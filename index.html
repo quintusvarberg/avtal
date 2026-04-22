@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teckna elavtal – Varberg Energi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#D90010;--red-dark:#B5000D;--red-light:#FFF0F0;--red-border:#FCCDD0;
+  --grey-bg:#F7F7F7;--grey-border:#DEDEDE;--grey-mid:#EBEBEB;
+  --radius:16px;--radius-sm:10px;
+  --text:#1A1A1A;--text-sec:#6B6B6B;--text-hint:#A0A0A0;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;color:var(--text);background:#fff;min-height:100vh}
+.shell{max-width:640px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem}
+.nav-steps{display:flex;align-items:center;gap:6px}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--grey-border);transition:all .3s}
+.nav-dot.done{background:var(--red)}
+.nav-dot.active{width:24px;border-radius:4px;background:var(--red)}
+.nav-label{font-size:13px;color:var(--text-hint)}
+.nav-back{font-size:14px;color:var(--text-sec);cursor:pointer;padding:6px 0;background:none;border:none;font-family:inherit}
+.nav-back:hover{color:var(--text)}
+.screen{display:none}.screen.active{display:block}
+
+.hero{margin-bottom:2.5rem}
+.hero h1{font-size:32px;font-weight:500;color:var(--text);letter-spacing:-0.5px;line-height:1.2;margin-bottom:8px}
+.hero p{font-size:16px;color:var(--text-sec);line-height:1.6}
+
+.field-label{font-size:13px;font-weight:500;color:var(--text-sec);margin-bottom:8px;display:block}
+.field-group{margin-bottom:1.5rem;position:relative}
+.big-input{width:100%;padding:16px 18px;font-size:17px;border:1.5px solid var(--grey-border);border-radius:var(--radius-sm);background:#fff;color:var(--text);outline:none;transition:border-color .15s;font-family:inherit}
+.big-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(217,0,16,.07)}
+.big-input::placeholder{color:var(--text-hint)}
+.big-input:disabled{background:var(--grey-bg);color:var(--text-sec)}
+.hint{font-size:13px;color:var(--text-hint);margin-top:6px}
+
+.dropdown{background:#fff;border:1.5px solid var(--grey-border);border-radius:var(--radius-sm);margin-top:4px;overflow:hidden;display:none;position:absolute;left:0;right:0;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.dropdown.show{display:block}
+.dropdown-item{padding:14px 18px;font-size:15px;cursor:pointer;color:var(--text);border-bottom:1px solid var(--grey-mid)}
+.dropdown-item:last-child{border-bottom:none}
+.dropdown-item:hover{background:var(--grey-bg)}
+.dropdown-item .city{color:var(--text-hint);font-size:14px;margin-left:6px}
+
+.seg{display:flex;border:1.5px solid var(--grey-border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:2rem}
+.seg-btn{flex:1;padding:14px;font-size:15px;cursor:pointer;background:#fff;color:var(--text-sec);border:none;border-right:1px solid var(--grey-border);transition:all .15s;font-family:inherit}
+.seg-btn:last-child{border-right:none}
+.seg-btn.on{background:var(--text);color:#fff;font-weight:500}
+
+.cta{width:100%;padding:18px;font-size:17px;font-weight:500;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;letter-spacing:-0.1px;transition:background .15s;font-family:inherit}
+.cta:hover{background:var(--red-dark)}
+.cta-ghost{width:100%;padding:16px;font-size:16px;background:none;color:var(--text-sec);border:1.5px solid var(--grey-border);border-radius:var(--radius-sm);cursor:pointer;margin-top:10px;transition:all .15s;font-family:inherit}
+.cta-ghost:hover{border-color:#aaa;color:var(--text)}
+
+/* KALKYLATOR */
+.calc-card{background:var(--grey-bg);border:1px solid var(--grey-mid);border-radius:var(--radius);padding:20px;margin-bottom:2rem}
+.calc-label{font-size:12px;font-weight:500;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.type-row{display:flex;gap:8px;margin-bottom:16px}
+.type-btn{flex:1;padding:9px 8px;border:1.5px solid var(--grey-border);border-radius:var(--radius-sm);background:#fff;color:var(--text-sec);font-size:13px;font-weight:500;cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:7px}
+.type-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.5;fill:none;flex-shrink:0}
+.type-btn:hover{border-color:#bbb;color:var(--text)}
+.type-btn.on{border-color:var(--text);background:var(--text);color:#fff}
+.size-row{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;margin-bottom:16px}
+.size-row::-webkit-scrollbar{display:none}
+.size-btn{padding:9px 13px;border:1.5px solid var(--grey-border);border-radius:8px;background:#fff;color:var(--text-sec);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.size-btn:hover{border-color:#bbb;color:var(--text)}
+.size-btn.on{border-color:var(--text);background:var(--text);color:#fff}
+.result-row{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid var(--grey-border);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:16px;transition:border-color .15s}
+.result-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px rgba(217,0,16,.07)}
+.result-label{font-size:14px;color:var(--text-sec);flex:1;line-height:1.5}
+.result-value{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.kwh-input{font-size:22px;font-weight:500;color:var(--text);border:none;outline:none;background:transparent;width:80px;text-align:right;font-family:inherit}
+.kwh-unit{font-size:14px;color:var(--text-hint)}
+.edit-hint{font-size:11px;color:var(--text-hint);text-align:right;margin-top:4px}
+.calc-divider{border-top:1px solid var(--grey-mid);margin-bottom:16px}
+
+/* PRODUCT LIST */
+.plist{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.card-outer{position:relative}
+.card-outer.has-badge{margin-top:14px}
+.pill-badge{position:absolute;top:-11px;left:16px;background:var(--red);color:#fff;font-size:11px;font-weight:500;padding:3px 12px;border-radius:20px;white-space:nowrap;z-index:2}
+.pcard{background:#fff;border:1.5px solid var(--grey-border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s}
+.pcard:hover{border-color:#bbb}
+.pcard.sel{border:2px solid var(--red)}
+.pcard-main{display:flex;align-items:stretch}
+.pcard-left{flex:1;padding:18px 20px;min-width:0}
+.pcard-name{font-size:17px;font-weight:500;color:var(--text);margin-bottom:2px}
+.pcard-tag{font-size:12px;color:var(--red);margin-bottom:14px}
+.pcard-meta{display:flex;align-items:center;gap:20px}
+.pcard-price{font-size:26px;font-weight:500;color:var(--text);letter-spacing:-0.5px;line-height:1}
+.pcard-price em{font-size:14px;font-weight:400;font-style:normal;color:var(--text-hint)}
+.pcard-ore{font-size:12px;color:var(--text-hint);margin-top:3px}
+.tog-label{font-size:10px;font-weight:500;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.tog-row{display:flex;gap:4px}
+.tog{padding:5px 10px;border:1.5px solid var(--grey-border);border-radius:6px;font-size:12px;cursor:pointer;background:#fff;color:var(--text);transition:all .12s;font-family:inherit;font-weight:500;white-space:nowrap}
+.tog.on{background:var(--text);color:#fff;border-color:var(--text)}
+.pcard-right{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px 20px;border-left:1px solid var(--grey-mid);min-width:160px;background:#fff}
+.pick-btn{width:100%;padding:14px 16px;background:var(--red) !important;color:#fff !important;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;transition:background .15s;font-family:inherit;white-space:nowrap}
+.pick-btn:hover{background:var(--red-dark) !important}
+.readmore{background:none;border:none;font-size:13px;color:var(--text-hint);cursor:pointer;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px}
+.readmore:hover{color:var(--text-sec)}
+.acc-body{display:none;padding:14px 20px;background:var(--grey-bg);font-size:13px;color:var(--text-sec);line-height:1.6;border-top:1px solid var(--grey-mid)}
+.acc-body.open{display:block}
+.acc-body h4{font-size:13px;font-weight:500;color:var(--text);margin:10px 0 3px}
+.acc-body h4:first-child{margin-top:0}
+.acc-body a{color:var(--red)}
+
+/* CHOICE CARDS */
+.choice-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.choice{background:#fff;border:1.5px solid var(--grey-border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:all .15s}
+.choice:hover{border-color:#bbb}
+.choice.sel{border:2px solid var(--red)}
+.choice-title{font-size:17px;font-weight:500;color:var(--text);margin-bottom:4px}
+.choice-desc{font-size:14px;color:var(--text-sec);line-height:1.5}
+.choice-tag{display:inline-block;font-size:12px;color:var(--red);background:#fff;border:1px solid var(--red-border);border-radius:6px;padding:2px 8px;margin-bottom:8px}
+.or-row{display:flex;align-items:center;gap:12px;margin:1.5rem 0;font-size:13px;color:var(--text-hint)}
+.or-row::before,.or-row::after{content:'';flex:1;height:1px;background:var(--grey-mid)}
+.self-fields{margin-top:1.5rem}
+.info-note{background:var(--grey-bg);border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:var(--text-sec);line-height:1.5;margin-top:8px}
+.info-note a{color:var(--red)}
+.solar-wrap{margin-top:1.5rem;display:none}
+.solar-wrap.show{display:block}
+.check-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:1rem}
+.check-row input[type=checkbox]{accent-color:var(--red);width:18px;height:18px;margin-top:1px;flex-shrink:0;cursor:pointer}
+.check-row label{font-size:15px;color:var(--text);line-height:1.4;cursor:pointer}
+
+/* STEG 4 */
+.pnr-row{display:flex;gap:10px;align-items:flex-start}
+.fetch-btn{padding:16px 20px;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s;opacity:.4;pointer-events:none;flex-shrink:0}
+.fetch-btn.ready{opacity:1;pointer-events:auto}
+.fetch-btn:hover{background:var(--red-dark)}
+.fetch-btn.loading{background:var(--grey-border);color:var(--text-hint);pointer-events:none;opacity:1}
+.result-card{background:var(--grey-bg);border:1px solid var(--grey-mid);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem;display:none}
+.result-card.show{display:block}
+.result-header{padding:12px 18px;border-bottom:1px solid var(--grey-mid);display:flex;align-items:center;justify-content:space-between}
+.result-header span{font-size:12px;font-weight:500;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em}
+.result-header a{font-size:13px;color:var(--red);cursor:pointer}
+.result-rw{display:flex;justify-content:space-between;align-items:baseline;padding:11px 18px;border-bottom:1px solid var(--grey-mid);font-size:15px}
+.result-rw:last-child{border-bottom:none}
+.result-rw .lbl{color:var(--text-sec)}
+.result-rw .val{color:var(--text);font-weight:500}
+.result-rw .val.masked{font-style:italic;font-weight:400;color:var(--text-sec)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* CONFIG BAR */
+.config-bar{display:flex;gap:12px;margin-bottom:1.5rem;background:var(--grey-bg);border:1px solid var(--grey-mid);border-radius:var(--radius-sm);padding:14px 16px;align-items:flex-start}
+.config-left,.config-right{flex:1}
+.config-note{font-size:11px;font-weight:500;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
+.kwh-edit-row{display:flex;align-items:baseline;gap:5px}
+.kwh-edit-input{font-size:20px;font-weight:500;color:var(--text);border:none;border-bottom:1.5px solid var(--grey-border);outline:none;background:transparent;width:72px;text-align:left;font-family:inherit;padding:2px 0}
+.kwh-edit-input:focus{border-bottom-color:var(--red)}
+.kwh-edit-unit{font-size:13px;color:var(--text-hint)}
+.energi-seg{display:flex;border:1.5px solid var(--grey-border);border-radius:8px;overflow:hidden}
+.energi-btn{flex:1;padding:7px 8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:var(--text-sec);border:none;border-right:1px solid var(--grey-border);transition:all .15s;font-family:inherit}
+.energi-btn:last-child{border-right:none}
+.energi-btn.on{background:var(--text);color:#fff}
+.price-row{display:flex;align-items:center;gap:8px}
+.info-btn{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--grey-border);background:#fff;color:var(--text-hint);font-size:11px;font-weight:700;cursor:pointer;font-style:italic;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding:0;line-height:1}
+.info-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* STEG 5 */
+.sum-section{background:var(--grey-bg);border:1px solid var(--grey-mid);border-radius:var(--radius);padding:20px;margin-bottom:10px}
+.sum-title{font-size:12px;font-weight:500;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.sum-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--grey-mid);font-size:15px}
+.sum-row:last-child{border-bottom:none}
+.sum-row .lbl{color:var(--text-sec)}
+.sum-row .val{color:var(--text);font-weight:500}
+.sum-row .val.masked{font-style:italic;font-weight:400;color:var(--text-sec)}
+.price-hero-row{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0 8px;border-bottom:1px solid var(--grey-mid)}
+.price-hero-row .lbl{font-size:15px;color:var(--text-sec)}
+.price-hero-row .big{font-size:28px;font-weight:500;color:var(--red);letter-spacing:-0.5px}
+.price-hero-row .big em{font-size:15px;font-weight:400;font-style:normal;color:var(--text-hint)}
+.legal-text{font-size:13px;color:var(--text-sec);line-height:1.6}
+.legal-text a{color:var(--red)}
+.bankid-btn{width:100%;padding:18px;background:#193E8F;color:#fff;border:none;border-radius:var(--radius-sm);font-size:17px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;font-family:inherit}
+.bankid-btn:hover{background:#122E6B}
+.bid-logo{width:24px;height:24px;background:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#193E8F;flex-shrink:0}
+
+/* SUCCESS */
+.success{text-align:center;padding:3rem 0}
+.success-icon{width:72px;height:72px;background:#ECFDF5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem}
+.success-icon svg{width:32px;height:32px;stroke:#059669;stroke-width:2;fill:none}
+.success h1{font-size:28px;font-weight:500;letter-spacing:-0.5px;margin-bottom:10px}
+.success p{font-size:16px;color:var(--text-sec);line-height:1.6;max-width:380px;margin:0 auto 2rem}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="nav" id="topNav">
+    <button class="nav-back" id="backBtn" style="visibility:hidden" onclick="goBack()">&#8592; Tillbaka</button>
+    <div class="nav-steps">
+      <div class="nav-dot active" id="d1"></div>
+      <div class="nav-dot" id="d2"></div>
+      <div class="nav-dot" id="d3"></div>
+      <div class="nav-dot" id="d4"></div>
+      <div class="nav-dot" id="d5"></div>
+      <div class="nav-dot" id="d6"></div>
+    </div>
+    <span class="nav-label" id="stepLbl">Steg 1 av 5</span>
+  </div>
+
+  <!-- S1: POSTNUMMER -->
+  <div class="screen active" id="s1">
+    <div class="hero">
+      <h1>Ange ditt postnummer</h1>
+      <p>Vi använder det för att visa rätt priser för ditt område.</p>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Postnummer</label>
+      <input class="big-input" id="zipInput" placeholder="T.ex. 432 00" maxlength="6" autocomplete="postal-code" oninput="handleZip(this.value)" style="letter-spacing:3px;font-size:28px;padding:20px 18px" />
+      <div class="hint" id="zipHint" style="display:none"></div>
+    </div>
+    <button class="cta" id="zipCta" style="opacity:.4;pointer-events:none" onclick="goTo(2)">Visa elavtal</button>
+  </div>
+
+  <!-- S2: PRODUKTVAL -->
+  <div class="screen" id="s2">
+    <div class="hero">
+      <h1>Välj ditt elavtal</h1>
+      <p>Priser för Varberg, elområde SE 3.</p>
+    </div>
+
+    <div class="config-bar">
+      <div class="config-left">
+        <span class="config-note">Priset baseras på</span>
+        <div class="kwh-edit-row">
+          <input class="kwh-edit-input" id="kwhEdit" value="5 000" oninput="onKwhEdit(this.value)" />
+          <span class="kwh-edit-unit">kWh/år</span>
+        </div>
+      </div>
+      <div class="config-right">
+        <span class="config-note">Energikälla</span>
+        <div class="energi-seg">
+          <button class="energi-btn on" id="e-fornybart" onclick="pickEnergi('fornybart')">Förnybart</button>
+          <button class="energi-btn" id="e-fossilfritt" onclick="pickEnergi('fossilfritt')">Fossilfritt</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="plist">
+      <div class="card-outer has-badge">
+        <div class="pill-badge">EL:IN på köpet</div>
+        <div class="pcard sel">
+          <div class="pcard-main">
+            <div class="pcard-left">
+              <div class="pcard-name">Dynamiskt elavtal</div>
+              <div class="pcard-tag">Påverka dina elkostnader</div>
+              <div class="pcard-meta">
+                <div>
+                  <div class="price-row">
+                    <div class="pcard-price" id="pr-dyn">170 <em>kr/mån</em></div>
+                    <button class="info-btn" onclick="showInfo('dyn')">i</button>
+                  </div>
+                  <div class="pcard-ore" id="ore-dyn">40,74 öre/kWh</div>
+                </div>
+              </div>
+            </div>
+            <div class="pcard-right">
+              <button class="pick-btn" onclick="pickProduct('Dynamiskt elavtal','dyn')">Välj och gå vidare</button>
+              <button class="readmore" onclick="toggleAcc('ac-dyn',this)"><span>+</span> Läs mer</button>
+            </div>
+          </div>
+          <div class="acc-body" id="ac-dyn">
+            <h4>Om avtalet</h4>Följer börspriset per timme. Bäst för dig med smart hem eller flexibel förbrukning.
+            <h4>Villkor</h4>Ingen bindningstid. Uppsägning med 1 månads varsel.<br><br><a href="#">Fullständiga villkor &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-outer">
+        <div class="pcard">
+          <div class="pcard-main">
+            <div class="pcard-left">
+              <div class="pcard-name">Rörligt elavtal</div>
+              <div class="pcard-tag">Följer marknaden</div>
+              <div class="pcard-meta">
+                <div>
+                  <div class="price-row">
+                    <div class="pcard-price" id="pr-ror">181 <em>kr/mån</em></div>
+                    <button class="info-btn" onclick="showInfo('ror')">i</button>
+                  </div>
+                  <div class="pcard-ore" id="ore-ror">43,40 öre/kWh</div>
+                </div>
+              </div>
+            </div>
+            <div class="pcard-right">
+              <button class="pick-btn" onclick="pickProduct('Rörligt elavtal','ror')">Välj och gå vidare</button>
+              <button class="readmore" onclick="toggleAcc('ac-ror',this)"><span>+</span> Läs mer</button>
+            </div>
+          </div>
+          <div class="acc-body" id="ac-ror">
+            <h4>Om avtalet</h4>Månadsvis rörligt pris baserat på börsen. Enkelt och transparent.
+            <h4>Villkor</h4>Ingen bindningstid. Uppsägning med 1 månads varsel.<br><br><a href="#">Fullständiga villkor &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-outer">
+        <div class="pcard">
+          <div class="pcard-main">
+            <div class="pcard-left">
+              <div class="pcard-name">Trend elavtal</div>
+              <div class="pcard-tag">Förvaltat avtal</div>
+              <div class="pcard-meta">
+                <div>
+                  <div class="price-row">
+                    <div class="pcard-price" id="pr-trend">252 <em>kr/mån</em></div>
+                    <button class="info-btn" onclick="showInfo('trend')">i</button>
+                  </div>
+                  <div class="pcard-ore" id="ore-trend">60,43 öre/kWh</div>
+                </div>
+              </div>
+            </div>
+            <div class="pcard-right">
+              <button class="pick-btn" onclick="pickProduct('Trend elavtal','trend')">Välj och gå vidare</button>
+              <button class="readmore" onclick="toggleAcc('ac-trend',this)"><span>+</span> Läs mer</button>
+            </div>
+          </div>
+          <div class="acc-body" id="ac-trend">
+            <h4>Om avtalet</h4>Vi sköter elhandeln åt dig och köper el till bästa möjliga pris.
+            <h4>Villkor</h4>Ingen bindningstid. Förvaltningsavgift tillkommer.<br><br><a href="#">Fullständiga villkor &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-outer">
+        <div class="pcard">
+          <div class="pcard-main">
+            <div class="pcard-left">
+              <div class="pcard-name">Fast elavtal 1 år</div>
+              <div class="pcard-tag">Tryggt och förutsägbart</div>
+              <div class="pcard-meta">
+                <div>
+                  <div class="price-row">
+                    <div class="pcard-price" id="pr-fast1">416 <em>kr/mån</em></div>
+                    <button class="info-btn" onclick="showInfo('fast1')">i</button>
+                  </div>
+                  <div class="pcard-ore" id="ore-fast1">99,76 öre/kWh</div>
+                </div>
+              </div>
+            </div>
+            <div class="pcard-right">
+              <button class="pick-btn" onclick="pickProduct('Fast elavtal 1 år','fast1')">Välj och gå vidare</button>
+              <button class="readmore" onclick="toggleAcc('ac-fast1',this)"><span>+</span> Läs mer</button>
+            </div>
+          </div>
+          <div class="acc-body" id="ac-fast1">
+            <h4>Om avtalet</h4>Fast pris per kWh under hela avtalsperioden. Inga överraskningar på fakturan.
+            <h4>Villkor</h4>Bindningstid 1 år. Kan ej sägas upp i förtid utan avgift.<br><br><a href="#">Fullständiga villkor &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-outer">
+        <div class="pcard">
+          <div class="pcard-main">
+            <div class="pcard-left">
+              <div class="pcard-name">Fast elavtal 3 år</div>
+              <div class="pcard-tag">Maximalt lugn och ro</div>
+              <div class="pcard-meta">
+                <div>
+                  <div class="price-row">
+                    <div class="pcard-price" id="pr-fast3">398 <em>kr/mån</em></div>
+                    <button class="info-btn" onclick="showInfo('fast3')">i</button>
+                  </div>
+                  <div class="pcard-ore" id="ore-fast3">95,52 öre/kWh</div>
+                </div>
+              </div>
+            </div>
+            <div class="pcard-right">
+              <button class="pick-btn" onclick="pickProduct('Fast elavtal 3 år','fast3')">Välj och gå vidare</button>
+              <button class="readmore" onclick="toggleAcc('ac-fast3',this)"><span>+</span> Läs mer</button>
+            </div>
+          </div>
+          <div class="acc-body" id="ac-fast3">
+            <h4>Om avtalet</h4>Lås in ett fast pris i tre år och slipp oroa dig för prisrörelser på elmarknaden.
+            <h4>Villkor</h4>Bindningstid 3 år. Kan ej sägas upp i förtid utan avgift.<br><br><a href="#">Fullständiga villkor &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO MODAL -->
+  <div id="infoOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;padding:1.5rem;overflow-y:auto" onclick="closeInfo(event)">
+    <div id="infoModal" style="background:#fff;border-radius:16px;max-width:560px;margin:2rem auto;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #EBEBEB">
+        <span id="infoTitle" style="font-size:16px;font-weight:500;color:#1A1A1A"></span>
+        <button onclick="closeInfo()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#A0A0A0;line-height:1">&times;</button>
+      </div>
+      <div style="padding:20px">
+        <p style="font-size:13px;color:#6B6B6B;margin-bottom:16px;line-height:1.6">Jämförelsetabell enligt lag (2022:1559) om avtalsvillkor på elmarknaden. Priserna avser elhandel och inkluderar inte elnätsavgift.</p>
+        <div id="infoTableWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4: ANLÄGGNING -->
+  <div class="screen" id="s4">
+    <div class="hero">
+      <h1>Anläggningsuppgifter</h1>
+      <p>Vi behöver koppla avtalet till rätt elmätare.</p>
+    </div>
+    <div class="choice-cards">
+      <div class="choice sel" id="ch-fullmakt" onclick="pickChoice('fullmakt')">
+        <div class="choice-tag">Rekommenderat</div>
+        <div class="choice-title">Varberg Energi sköter bytet</div>
+        <div class="choice-desc">Du slipper leta fram ditt anläggnings-ID. Vi hämtar allt och genomför leverantörsbytet åt dig.</div>
+      </div>
+      <div class="or-row">eller</div>
+      <div class="choice" id="ch-self" onclick="pickChoice('self')">
+        <div class="choice-title">Jag fyller i uppgifterna själv</div>
+        <div class="choice-desc">Du anger anläggnings-ID och väljer ett specifikt startdatum.</div>
+      </div>
+    </div>
+    <div class="self-fields" id="selfFields" style="display:none">
+      <div class="field-group">
+        <label class="field-label">Anläggnings-ID</label>
+        <input class="big-input" placeholder="735999100012345678" />
+        <div class="info-note">Du hittar anläggnings-ID på din elnätsfaktura. Osäker? <a href="#" onclick="pickChoice('fullmakt');return false">Välj fullmakt så sköter vi det.</a></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Startdatum</label>
+        <input class="big-input" type="date" />
+        <div class="hint">Tidigast möjliga start är 14 dagar från idag.</div>
+      </div>
+      <div class="check-row" style="margin-top:0.5rem">
+        <input type="checkbox" id="hasSolar" onchange="document.getElementById('solarWrap').classList.toggle('show',this.checked)" />
+        <label for="hasSolar">Jag har solceller eller batteri</label>
+      </div>
+      <div class="solar-wrap" id="solarWrap">
+        <div class="field-group">
+          <label class="field-label">Produktions-ID</label>
+          <input class="big-input" placeholder="735999100098765432" />
+          <div class="info-note">Produktions-ID hittar du på din elnätsfaktura, separat från konsumtions-ID. Osäker? <a href="#" onclick="pickChoice('fullmakt');return false">Låt oss sköta det.</a></div>
+        </div>
+      </div>
+    </div>
+    <button class="cta" onclick="goTo(5)">Fortsätt</button>
+  </div>
+
+  <!-- S3: PERSONNUMMER -->
+  <div class="screen" id="s3">
+    <div class="hero">
+      <h1>Dina uppgifter</h1>
+      <p>Ange ditt personnummer så hämtar vi dina uppgifter.</p>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Personnummer</label>
+      <div class="pnr-row">
+        <input class="big-input" id="pnrInput" placeholder="ÅÅÅÅMMDDXXXX" maxlength="12" oninput="handlePnr(this.value)" style="letter-spacing:2px" />
+        <button class="fetch-btn" id="fetchBtn" onclick="fetchAddress()">Hämta adress</button>
+      </div>
+      <div class="hint">Vi hämtar dina uppgifter från folkbokföringen.</div>
+    </div>
+    <div class="result-card" id="resultCard">
+      <div class="result-header">
+        <span>Hämtade uppgifter</span>
+        <a onclick="resetPnr()">Ändra</a>
+      </div>
+      <div class="result-rw"><span class="lbl">Namn</span><span class="val masked">An*** Jo***son</span></div>
+      <div class="result-rw"><span class="lbl">Adress</span><span class="val masked">Kung***an 14, Varberg</span></div>
+      <div class="result-rw"><span class="lbl">Personnummer</span><span class="val masked">19**-**-****</span></div>
+    </div>
+    <div id="emailGroup" style="display:none">
+      <div style="margin-bottom:1.5rem">
+        <label class="field-label">Ska elen levereras till folkbokföringsadressen?</label>
+        <div class="seg" style="margin-bottom:0">
+          <button class="seg-btn on" id="addr-ja" onclick="pickDeliveryAddr('ja')">Ja, samma adress</button>
+          <button class="seg-btn" id="addr-nej" onclick="pickDeliveryAddr('nej')">Nej, annan adress</button>
+        </div>
+        <div id="otherAddrWrap" style="display:none;margin-top:12px">
+          <div class="field-group" style="margin-bottom:1rem">
+            <label class="field-label">Gatuadress</label>
+            <input class="big-input" placeholder="T.ex. Storgatan 12" />
+          </div>
+          <div style="display:flex;gap:10px">
+            <div class="field-group" style="flex:0 0 140px;margin-bottom:0">
+              <label class="field-label">Postnummer</label>
+              <input class="big-input" placeholder="432 00" maxlength="6" style="letter-spacing:2px" />
+            </div>
+            <div class="field-group" style="flex:1;margin-bottom:0">
+              <label class="field-label">Ort</label>
+              <input class="big-input" placeholder="Varberg" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="cta" onclick="goTo(4)">Fortsätt</button>
+    </div>
+  </div>
+
+  <!-- S5: KONTAKTUPPGIFTER -->
+  <div class="screen" id="s5">
+    <div class="hero">
+      <h1>Dina kontaktuppgifter</h1>
+      <p>Så här når vi dig med orderbekräftelse och information om ditt avtal.</p>
+    </div>
+    <div class="field-group">
+      <label class="field-label">E-postadress</label>
+      <input class="big-input" type="email" placeholder="din@email.se" id="emailInput" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Mobilnummer</label>
+      <input class="big-input" type="tel" placeholder="07X XXX XX XX" id="phoneInput" style="letter-spacing:1px" />
+    </div>
+    <button class="cta" onclick="goTo(6)">Fortsätt</button>
+  </div>
+
+  <!-- S6: SUMMERING -->
+  <div class="screen" id="s6">
+    <div class="hero">
+      <h1>Granska och signera</h1>
+      <p>Kontrollera att allt stämmer innan du signerar.</p>
+    </div>
+    <div class="sum-section">
+      <div class="sum-title">Valt avtal</div>
+      <div class="price-hero-row">
+        <span class="lbl">Uppskattad kostnad</span>
+        <span class="big" id="sumPrice">170 <em>kr/mån</em></span>
+      </div>
+      <div class="sum-row"><span class="lbl">Produkt</span><span class="val" id="sumProd">Dynamiskt elavtal</span></div>
+      <div class="sum-row"><span class="lbl">Rörlig avgift</span><span class="val" id="sumOre">40,74 öre/kWh</span></div>
+      <div class="sum-row"><span class="lbl">Energikälla</span><span class="val">Förnybart</span></div>
+    </div>
+    <div class="sum-section">
+      <div class="sum-title">Leverans</div>
+      <div class="sum-row"><span class="lbl">Adress</span><span class="val masked">Kung***an 14, Varberg</span></div>
+      <div class="sum-row"><span class="lbl">Leverantörsbyte</span><span class="val">Varberg Energi sköter det</span></div>
+      <div class="sum-row"><span class="lbl">Beräknad start</span><span class="val">Inom 14–21 dagar</span></div>
+    </div>
+    <div class="sum-section" style="margin-bottom:1.5rem">
+      <div class="sum-title">Kund</div>
+      <div class="sum-row"><span class="lbl">Namn</span><span class="val masked">An*** Jo***son</span></div>
+      <div class="sum-row"><span class="lbl">E-post</span><span class="val">anders@email.se</span></div>
+      <div class="sum-row"><span class="lbl">Mobil</span><span class="val">07X XXX XX XX</span></div>
+    </div>
+    <div class="check-row" style="margin-bottom:1.5rem">
+      <input type="checkbox" id="terms" />
+      <label for="terms" class="legal-text">Jag godkänner <a href="#">avtalsvillkoren</a> och <a href="#">integritetspolicyn</a>, och ger Varberg Energi fullmakt att genomföra leverantörsbytet.</label>
+    </div>
+    <button class="bankid-btn" onclick="goTo(7)">
+      <div class="bid-logo">B</div>Signera med mobilt BankID
+    </button>
+    <button class="cta-ghost" onclick="goTo(3)">Ändra uppgifter</button>
+  </div>
+
+  <!-- S7: TACK -->
+  <div class="screen" id="s7">
+    <div class="success">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h1>Välkommen som kund!</h1>
+      <p>Ditt avtal är tecknat. En bekräftelse skickas till din e-post. Vi hanterar leverantörsbytet och meddelar dig när det är klart.</p>
+      <button class="cta" style="max-width:320px;margin:0 auto;display:block" onclick="goTo(1)">Tillbaka till startsidan</button>
+    </div>
+  </div>
+
+</div>
+<script>
+var hist = [];
+
+function goTo(n) {
+  var cur = document.querySelector('.screen.active');
+  if (cur) { hist.push(cur.id); cur.classList.remove('active'); }
+  document.getElementById('s'+n).classList.add('active');
+  updateNav(n);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function goBack() {
+  if (!hist.length) return;
+  document.querySelector('.screen.active').classList.remove('active');
+  var prev = hist.pop();
+  document.getElementById(prev).classList.add('active');
+  updateNav(parseInt(prev.replace('s','')));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateNav(n) {
+  for (var i=1; i<=6; i++) {
+    var d = document.getElementById('d'+i);
+    if (!d) continue;
+    d.className = 'nav-dot' + (i<n ? ' done' : i===n ? ' active' : '');
+  }
+  document.getElementById('stepLbl').textContent = n<=6 ? 'Steg '+n+' av 6' : '';
+  document.getElementById('backBtn').style.visibility = (n>1 && n<=6) ? 'visible' : 'hidden';
+  document.getElementById('topNav').style.display = n===7 ? 'none' : 'flex';
+}
+
+function handleZip(v) {
+  var clean = v.replace(/\D/g,'');
+  var btn = document.getElementById('zipCta');
+  var hint = document.getElementById('zipHint');
+  if (clean.length === 5) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    hint.style.display = 'block';
+    hint.textContent = 'Elområde SE 3 – Varberg';
+  } else {
+    btn.style.opacity = '.4';
+    btn.style.pointerEvents = 'none';
+    hint.style.display = 'none';
+  }
+}
+
+
+var curKwh = 5000;
+var curEnergi = 'fornybart';
+
+var priceData = {
+  dyn:   { fornybart: [40.74, 30.50], fossilfritt: [38.20, 30.50] },
+  ror:   { fornybart: [43.40, 30.50], fossilfritt: [41.00, 30.50] },
+  trend: { fornybart: [60.43, 35.00], fossilfritt: [58.00, 35.00] },
+  fast1: { fornybart: [99.76, 0],     fossilfritt: [97.50, 0]     },
+  fast3: { fornybart: [95.52, 0],     fossilfritt: [93.20, 0]     }
+};
+
+var infoData = {
+  dyn:   { name: 'Dynamiskt elavtal',   type: 'Rörligt timpris', bind: 'Ingen bindningstid', varsel: '1 månad' },
+  ror:   { name: 'Rörligt elavtal',     type: 'Rörligt månadssnitt', bind: 'Ingen bindningstid', varsel: '1 månad' },
+  trend: { name: 'Trend elavtal',       type: 'Förvaltning', bind: 'Ingen bindningstid', varsel: '1 månad' },
+  fast1: { name: 'Fast elavtal 1 år',   type: 'Fast pris', bind: '1 år', varsel: 'Ej möjlig i förtid' },
+  fast3: { name: 'Fast elavtal 3 år',   type: 'Fast pris', bind: '3 år', varsel: 'Ej möjlig i förtid' }
+};
+
+function onKwhEdit(v) {
+  var raw = parseInt(v.replace(/\s/g,'')) || 0;
+  curKwh = raw;
+  updatePrices();
+}
+
+function pickEnergi(v) {
+  curEnergi = v;
+  document.getElementById('e-fornybart').className = 'energi-btn' + (v==='fornybart' ? ' on' : '');
+  document.getElementById('e-fossilfritt').className = 'energi-btn' + (v==='fossilfritt' ? ' on' : '');
+  updatePrices();
+}
+
+function updatePrices() {
+  Object.keys(priceData).forEach(function(key) {
+    var arr = priceData[key][curEnergi];
+    var r = arr[0], f = arr[1];
+    var m = Math.round(r * curKwh / 100 / 12 + f);
+    var el = document.getElementById('pr-'+key);
+    if (el) el.innerHTML = m.toLocaleString('sv-SE') + ' <em>kr/mån</em>';
+    var oreEl = document.getElementById('ore-'+key);
+    if (oreEl) oreEl.textContent = r.toFixed(2).replace('.',',') + ' öre/kWh';
+  });
+}
+
+function showInfo(key) {
+  var d = infoData[key];
+  var arr = priceData[key][curEnergi];
+  var r = arr[0], f = arr[1];
+  var monthly = Math.round(r * curKwh / 100 / 12 + f);
+  var yearly = Math.round(r * curKwh / 100 + f * 12);
+  document.getElementById('infoTitle').textContent = d.name + ' – jämförelsetabell';
+  document.getElementById('infoTableWrap').innerHTML =
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+    '<thead><tr style="background:#F7F7F7">' +
+    '<th style="text-align:left;padding:9px 12px;font-weight:500;color:#6B6B6B;border-bottom:1px solid #EBEBEB">Uppgift</th>' +
+    '<th style="text-align:right;padding:9px 12px;font-weight:500;color:#6B6B6B;border-bottom:1px solid #EBEBEB">Värde</th>' +
+    '</tr></thead><tbody>' +
+    row('Avtalstyp', d.type) +
+    row('Bindningstid', d.bind) +
+    row('Uppsägningstid', d.varsel) +
+    row('Energikälla', curEnergi === 'fornybart' ? 'Förnybart (vind, vatten, sol)' : 'Fossilfritt') +
+    row('Rörlig avgift', r.toFixed(2).replace('.',',') + ' öre/kWh') +
+    (f > 0 ? row('Fast månadsavgift', f.toFixed(2).replace('.',',') + ' kr/mån') : '') +
+    row('Beräknat månadspris*', monthly.toLocaleString('sv-SE') + ' kr/mån') +
+    row('Beräknat årspris*', yearly.toLocaleString('sv-SE') + ' kr/år') +
+    '</tbody></table>' +
+    '<p style="font-size:11px;color:#A0A0A0;margin-top:12px;line-height:1.5">* Beräknat utifrån ' + curKwh.toLocaleString('sv-SE') + ' kWh/år för elområde SE 3. Elnätsavgifter ingår inte. Historiska priser garanterar inte framtida priser.</p>';
+  document.getElementById('infoOverlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function row(label, value) {
+  return '<tr style="border-bottom:1px solid #EBEBEB"><td style="padding:9px 12px;color:#6B6B6B">' + label + '</td><td style="padding:9px 12px;text-align:right;font-weight:500;color:#1A1A1A">' + value + '</td></tr>';
+}
+
+function closeInfo(e) {
+  if (!e || e.target === document.getElementById('infoOverlay') || !e.target) {
+    document.getElementById('infoOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+
+function pickProduct(name, key) {
+  var arr = priceData[key][curEnergi];
+  var r = arr[0];
+  var m = Math.round(r * curKwh / 100 / 12 + arr[1]);
+  document.getElementById('sumProd').textContent = name;
+  document.getElementById('sumPrice').innerHTML = m.toLocaleString('sv-SE') + ' <em>kr/mån</em>';
+  document.getElementById('sumOre').textContent = r.toFixed(2).replace('.',',') + ' öre/kWh';
+  goTo(3);
+}
+
+
+function tog(el) {
+  el.closest('.tog-row').querySelectorAll('.tog').forEach(function(t) { t.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+function toggleAcc(id, btn) {
+  var b = document.getElementById(id);
+  var open = b.classList.toggle('open');
+  btn.querySelector('span').textContent = open ? '–' : '+';
+}
+
+function pickProduct(name, price, ore) {
+  document.getElementById('sumProd').textContent = name;
+  document.getElementById('sumPrice').innerHTML = price + ' <em>kr/mån</em>';
+  document.getElementById('sumOre').textContent = ore + ' öre/kWh';
+  goTo(3);
+}
+
+function pickChoice(v) {
+  document.getElementById('ch-fullmakt').className = 'choice' + (v==='fullmakt' ? ' sel' : '');
+  document.getElementById('ch-self').className = 'choice' + (v==='self' ? ' sel' : '');
+  document.getElementById('selfFields').style.display = v==='self' ? 'block' : 'none';
+}
+
+function pickDeliveryAddr(v) {
+  document.getElementById('addr-ja').className = 'seg-btn' + (v==='ja' ? ' on' : '');
+  document.getElementById('addr-nej').className = 'seg-btn' + (v==='nej' ? ' on' : '');
+  document.getElementById('otherAddrWrap').style.display = v==='nej' ? 'block' : 'none';
+}
+
+function handlePnr(v) {
+  var btn = document.getElementById('fetchBtn');
+  btn.classList.toggle('ready', v.replace(/\D/g,'').length >= 10);
+}
+
+function fetchAddress() {
+  var btn = document.getElementById('fetchBtn');
+  var inp = document.getElementById('pnrInput');
+  btn.innerHTML = '<span class="spinner"></span>Hämtar...';
+  btn.classList.add('loading');
+  inp.disabled = true;
+  setTimeout(function() {
+    btn.innerHTML = 'Hämta adress';
+    btn.classList.remove('loading');
+    document.getElementById('resultCard').classList.add('show');
+    document.getElementById('emailGroup').style.display = 'block';
+  }, 1200);
+}
+
+function resetPnr() {
+  document.getElementById('pnrInput').value = '';
+  document.getElementById('pnrInput').disabled = false;
+  document.getElementById('fetchBtn').classList.remove('ready','loading');
+  document.getElementById('fetchBtn').innerHTML = 'Hämta adress';
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('emailGroup').style.display = 'none';
+}
+</script>
+</body>
+</html>
